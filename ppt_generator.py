@@ -8,10 +8,12 @@ def generate_ppt(
 
     import os
     import csv
+    import tempfile
     from pptx import Presentation
     from pptx.util import Pt
     from pptx.enum.text import PP_ALIGN
     from pptx.dml.color import RGBColor
+    from PIL import Image
     from pptx.enum.shapes import PP_PLACEHOLDER
 
     import csv
@@ -69,6 +71,37 @@ def generate_ppt(
         run.font.color.rgb = color
         p.alignment = align
 
+    def normalize_image(image_path):
+        """
+        Converts image into a PMO-safe RGB JPG.
+        Returns new image path or None if unusable.
+        """
+        try:
+            img = Image.open(image_path)
+
+            img.verify()
+
+            img = Image.open(image_path)
+            img = img.convert("RGB")
+
+            tmp = tempfile.NamedTemporaryFile(
+                suffix=".jpg",
+                delete=False
+            )
+
+            img.save(
+                tmp.name,
+                format="JPEG",
+                quality=92,
+                subsampling=0,
+                optimize=True
+            )
+            return tmp.name
+
+        except Exception as e:
+            print(f"⚠ Bad image skipped: {os.path.basename(image_path)} ({e})")
+            return None
+
     def add_image_to_placeholder(slide, placeholder_idx, image_dir, image_name_no_ext):
         """
         slide: pptx slide
@@ -85,12 +118,16 @@ def generate_ppt(
         for ext in IMG_EXTS:
             temp_path = os.path.join(image_dir, image_name_no_ext + ext)
             if os.path.exists(temp_path):
-                image_path = temp_path
+                raw_image = temp_path
                 break
 
-        if not image_path:
+        if not raw_image:
             print(f"⚠ Image not found for ID '{image_name_no_ext}' in {image_dir}")
             return
+
+        safe_image = normalize_image(raw_image)
+        if not safe_image:
+            return  # placeholder stays empty
 
         # Placeholder geometry
         left = ph.left
@@ -102,7 +139,10 @@ def generate_ppt(
         ph._element.getparent().remove(ph._element)
 
         # Add picture stretched to placeholder
-        slide.shapes.add_picture(image_path, left, top, width=width, height=height)
+        try:
+            slide.shapes.add_picture(safe_image, left, top, width=width, height=height)
+        except Exception as e:
+            print(f"⚠ Image skipped for '{image_name_no_ext}': {e}")
 
     for person in people:
         slide = prs.slides.add_slide(layout)
@@ -122,7 +162,7 @@ def generate_ppt(
             person["email"] + email_suffix,
             20,
             False,
-            RGBColor(0, 112, 192),
+            RGBColor(5, 77, 162),
             PP_ALIGN.LEFT,
             "Montserrat ExtraBold"
         )
@@ -132,7 +172,7 @@ def generate_ppt(
             person["department"],
             20,
             False,
-            RGBColor(0, 112, 192),
+            RGBColor(5, 77, 162),
             PP_ALIGN.LEFT,
             "Montserrat ExtraBold"
         )

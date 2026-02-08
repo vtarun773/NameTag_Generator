@@ -83,10 +83,6 @@ create_row("Email Suffix", email_suffix_var, None, 4)
 ctk.CTkButton(center_frame, text="Generate Nametags", command=run_generator,
               width=200, height=50, corner_radius=25, font=("Segoe UI", 14, "bold")).grid(row=5, column=0, columnspan=3, pady=30)
 
-# Bottom-right "made by" label
-made_by_label = ctk.CTkLabel(root, text="developed by tarun1.verma", font=("Segoe UI", 10))
-made_by_label.place(relx=1.0, rely=1.0, x=-10, y=-5, anchor="se")
-
 # ---------------- Make the frame expand vertically ----------------
 for i in range(6):
     center_frame.grid_rowconfigure(i, weight=1)
