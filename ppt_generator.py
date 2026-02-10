@@ -19,7 +19,16 @@ def generate_ppt(
     import csv
 
     people = []
-
+    '''
+    for filename in os.listdir(image_dir):
+        name = os.path.join(image_dir, filename)
+        new_name = name.lower()
+        new_path = os.path.join(image_dir, new_name)
+        
+        if name != new_path:
+            os.rename(name, new_name)
+    
+    '''
     encodings = ("utf-8-sig", "utf-8")
     last_error = None
 
@@ -112,7 +121,7 @@ def generate_ppt(
         ph = slide.placeholders[placeholder_idx]
 
         IMG_EXTS = [".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff"]
-        image_path = None
+        raw_image = None
 
         # find first available image with supported extension
         for ext in IMG_EXTS:
