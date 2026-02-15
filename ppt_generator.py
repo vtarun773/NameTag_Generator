@@ -7,6 +7,7 @@ def generate_ppt(
 ):
 
     import os
+    import sys
     import csv
     import tempfile
     from pptx import Presentation
@@ -54,7 +55,13 @@ def generate_ppt(
             "Please save it as UTF-8 or UTF-8 with BOM (Excel default)."
         ) from last_error
 
-    prs = Presentation(template_path)
+    def resource_path(filename):
+        """ Get absolute path to resource (works for dev and for PyInstaller) """
+        if hasattr(sys, '_MEIPASS'):
+            return os.path.join(sys._MEIPASS, filename)
+        return os.path.join(os.path.abspath("."), filename)
+
+    prs = Presentation(resource_path(template_path))
     layout = prs.slide_layouts[0]
 
     FIELD_IDX = {}
